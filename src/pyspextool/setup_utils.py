@@ -13,7 +13,7 @@ except ImportError:
     from importlib_resources import files  # Python <=3.9
 
 
-logging.basicConfig(level='DEBUG')
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 
 def pyspextool_setup(instrument=setup.state['instruments'][0],
@@ -70,6 +70,9 @@ def pyspextool_setup(instrument=setup.state['instruments'][0],
     if instrument is not None:
         set_instrument(instrument)
 
+    if verbose is True:
+        logging.basicConfig(level=logging.DEBUG)
+
     set_parameters(raw_path=raw_path, cal_path=cal_path, proc_path=proc_path,
                    qa_path=qa_path, verbose=verbose, qa_extension=qa_extension,
                    qa_file=qa_file, qa_plot=qa_plot)
@@ -116,6 +119,8 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
     None
 
     """
+    if verbose is True:
+        logging.basicConfig(level=logging.DEBUG)
 
     #
     # Check parameters
@@ -181,7 +186,7 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
     if raw_path is not None:
         raw_path = check_path(raw_path, make_absolute=True)
         setup.state['raw_path'] = raw_path
-        logging.info(f'Set raw_path to {raw_path}')   
+        logging.debug(f'Set raw_path to {raw_path}')   
 
     if cal_path is not None:
         try:
@@ -190,7 +195,7 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
         except ValueError:
             os.mkdir(cal_path)
             cal_path = check_path(cal_path, make_absolute=True)
-            logging.debug(f'Created cal_path directory {cal_path}')
+            logging.info(f'Created cal_path directory {cal_path}')
 
         setup.state['cal_path'] = cal_path
         
@@ -206,7 +211,7 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
         except ValueError:
             os.mkdir(qa_path)
             qa_path = check_path(qa_path, make_absolute=True)
-            logging.debug(f'Created qa_path directory {qa_path}')    
+            logging.info(f'Created qa_path directory {qa_path}')    
             
         setup.state['qa_path'] = qa_path
 
@@ -266,10 +271,10 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
     QA File: {setup.state['qa_file']}
     """
 
-    if verbose is True:
-        print(msg)
+    # if verbose is True:
+    #    print(msg)
 
-    logging.info(msg)
+    logging.debug(msg)
 
 
 def set_instrument(instrument_name):
@@ -377,6 +382,6 @@ def set_instrument(instrument_name):
 
     keywords = np.loadtxt(keywords_path, comments='#', dtype='str').tolist()
 
-    # setup.state['pyspextool_keywords'] = keywords
+    setup.state['pyspextool_keywords'] = keywords
 
-    # logging.info("Instrument state set to somethnig else")
+    logging.info("Instrument state set to somethnig else")
