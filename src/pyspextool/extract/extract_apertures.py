@@ -266,6 +266,7 @@ def extract_pointsource(fix_bad_pixels=None, use_mean_profile=None, bad_pixel_th
                                         extract.state['tracecoeffs'],
                                         extract.state['apradii'],
                                         extract.state['apsigns'],
+                                     linmax_bitmask=extract.state['maskimage'],
                                         badpixel_info=badpixelinfo,
                                         optimal_info=optimalinfo,
                                         background_info=psbginfo,
@@ -407,6 +408,7 @@ def write_apertures(spectra, psbginfo=None, xsbginfo=None, optimal_info=None,
                 
                 number = plot_spectra(output_fullpath + '.fits',
                                       title=filename+'.fits',                                                         plot_size=qa_plotsize,
+                                      flag_linearity=True,
                             plot_number=extract.state['spectra_a_plotnum'])
 
                 extract.state['spectra_a_plotnum'] = number
@@ -414,7 +416,9 @@ def write_apertures(spectra, psbginfo=None, xsbginfo=None, optimal_info=None,
             if qa_file is True:
 
                 qafileinfo['filename'] = os.path.basename(output_fullpath)
-                plot_spectra(output_fullpath + '.fits', file_info=qafileinfo)
+                plot_spectra(output_fullpath + '.fits',
+                             flat_linearity=True,
+                             file_info=qafileinfo)
 
         elif extract.state['reductionmode'] == 'A-B':
 
@@ -466,6 +470,7 @@ def write_apertures(spectra, psbginfo=None, xsbginfo=None, optimal_info=None,
                     number = plot_spectra(output_fullpath + '.fits',
                                  title=filename+'.fits',
                                  plot_size=qa_plotsize,
+                                 flag_linearity=True,
                                  plot_number=extract.state['spectra_a_plotnum'])
 
                     extract.state['spectra_a_plotnum'] = number
@@ -475,6 +480,7 @@ def write_apertures(spectra, psbginfo=None, xsbginfo=None, optimal_info=None,
 
                     qafileinfo['filename'] = filename
                     plot_spectra(output_fullpath + '.fits',
+                                 flag_linearity=True,                 
                                  file_info=qafileinfo)
 
             # Are there negative apertures?
@@ -522,6 +528,7 @@ def write_apertures(spectra, psbginfo=None, xsbginfo=None, optimal_info=None,
 
                     number = plot_spectra(output_fullpath + '.fits',
                                           title=filename+'.fits',
+                                          flag_linearity=True,                
                                           plot_size=qa_plotsize,
                                 plot_number=extract.state['spectra_b_plotnum'])
                     extract.state['spectra_b_plotnum'] = number
@@ -529,7 +536,7 @@ def write_apertures(spectra, psbginfo=None, xsbginfo=None, optimal_info=None,
                 if qa_file is True:
 
                     qafileinfo['filename'] = filename
-                    plot_spectra(output_fullpath + '.fits',
+                    plot_spectra(output_fullpath + '.fits',flag_linearity=True,
                                  file_info=qafileinfo)
 
         elif extract.state['reductionmode'] == 'A-Sky/Dark':
