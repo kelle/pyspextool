@@ -1,7 +1,7 @@
 import os
 from astropy.io import fits
 import numpy as np
-
+import logging
 from pyspextool import config as setup
 from pyspextool.io.read_instrument_file import read_instrument_file
 from pyspextool.io.check import check_parameter, check_path, check_file
@@ -11,6 +11,9 @@ try:
     from importlib.resources import files  # Python 3.10+
 except ImportError:
     from importlib_resources import files  # Python <=3.9
+
+
+logging.basicConfig(level='DEBUG')
 
 
 def pyspextool_setup(instrument=setup.state['instruments'][0],
@@ -178,30 +181,49 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
     if raw_path is not None:
         raw_path = check_path(raw_path, make_absolute=True)
         setup.state['raw_path'] = raw_path
+        logging.info(f'Set raw_path to {raw_path}')   
 
     if cal_path is not None:
-        cal_path = check_path(cal_path, make_absolute=True)
+        try:
+            cal_path = check_path(cal_path, make_absolute=True)
+            logging.debug(f'Set cal_path to {cal_path}')
+        except ValueError:
+            os.mkdir(cal_path)
+            cal_path = check_path(cal_path, make_absolute=True)
+            logging.debug(f'Created cal_path directory {cal_path}')
+
         setup.state['cal_path'] = cal_path
+        
 
     if proc_path is not None:
         proc_path = check_path(proc_path, make_absolute=True)
         setup.state['proc_path'] = proc_path
 
     if qa_path is not None:
-        qa_path = check_path(qa_path, make_absolute=True)
+        try:
+            qa_path = check_path(qa_path, make_absolute=True)
+            logging.debug(f'Set qa_path to {qa_path}')
+        except ValueError:
+            os.mkdir(qa_path)
+            qa_path = check_path(qa_path, make_absolute=True)
+            logging.debug(f'Created qa_path directory {qa_path}')    
+            
         setup.state['qa_path'] = qa_path
+
 
     #
     # Now write the paths to the user home directory
     #
 
-    f = open(os.path.join(home_path, '.pyspextool_' + \
-                          setup.state['instrument'] + '.dat'), 'w')
+    dat_file_name = f".pyspextool_{setup.state['instrument']}.dat"
+    f = open(os.path.join(home_path, dat_file_name), 'w')
     f.write('%s \n' % setup.state['raw_path'])
     f.write('%s \n' % setup.state['cal_path'])
     f.write('%s \n' % setup.state['proc_path'])
     f.write('%s \n' % setup.state['qa_path'])
     f.close()
+
+    logging.info(f'Created {dat_file_name} in {home_path}')
 
     # Set the qa extension filetype
 
@@ -229,20 +251,25 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
 
     setup.state['verbose'] = verbose
 
+    msg = f"""
+    Pyspextool Setup
+    ----------------
+    Instrument: {setup.state['instrument']}
+
+    Rawpath: {setup.state['raw_path']}
+    Calpath: {setup.state['cal_path']}
+    Procpath: {setup.state['proc_path']}
+    Qapath: {setup.state['qa_path']}
+
+    QA Extension: {setup.state['qa_extension']}
+    QA Plot: {setup.state['qa_plot']}
+    QA File: {setup.state['qa_file']}
+    """
+
     if verbose is True:
-        print()
-        print('Pyspextool Setup')
-        print('----------------')
-        print('Instrument: ', setup.state['instrument'])
-        print()
-        print('Rawpath: ', setup.state['raw_path'])
-        print('Calpath: ', setup.state['cal_path'])
-        print('Procpath: ', setup.state['proc_path'])
-        print('Qapath: ', setup.state['qa_path'])
-        print()
-        print('QA Extension:', setup.state['qa_extension'])
-        print('QA Plot:', setup.state['qa_plot'])
-        print('QA File:', setup.state['qa_file'], '\n')
+        print(msg)
+
+    logging.info(msg)
 
 
 def set_instrument(instrument_name):
@@ -334,7 +361,13 @@ def set_instrument(instrument_name):
 
     check_file(bad_pixel_mask_file)
 
-    setup.state['raw_bad_pixel_mask'] = fits.getdata(bad_pixel_mask_file)
+    try:
+        setup.state['raw_bad_pixel_mask'] = fits.getdata(bad_pixel_mask_file)
+    except OSError as e:
+        print('Error: ', e)
+        print('Could not open bad pixel mask file: ', bad_pixel_mask_file)
+        print('Check that you have the actual 2.1 MB file and not a symbolic link.')
+        
 
     #
     # Grab the Spextool keywords
@@ -344,4 +377,6 @@ def set_instrument(instrument_name):
 
     keywords = np.loadtxt(keywords_path, comments='#', dtype='str').tolist()
 
-    setup.state['pyspextool_keywords'] = keywords
+    # setup.state['pyspextool_keywords'] = keywords
+
+    # logging.info("Instrument state set to somethnig else")
