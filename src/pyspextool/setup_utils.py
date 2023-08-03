@@ -71,7 +71,9 @@ def pyspextool_setup(instrument=setup.state['instruments'][0],
         set_instrument(instrument)
 
     if verbose is True:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
 
     set_parameters(raw_path=raw_path, cal_path=cal_path, proc_path=proc_path,
                    qa_path=qa_path, verbose=verbose, qa_extension=qa_extension,
@@ -119,8 +121,6 @@ def set_parameters(raw_path=None, cal_path=None, proc_path=None, qa_path=None,
     None
 
     """
-    if verbose is True:
-        logging.basicConfig(level=logging.DEBUG)
 
     #
     # Check parameters
